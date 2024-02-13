@@ -1,30 +1,41 @@
-def show_notes():
+import json
+
+def load_notes():
     try:
-        with open('notes.txt', 'r') as file:
-            notes = file.readlines()
-            print("\nВаши заметки:")
-            for number, note in enumerate(notes, start=1):
-                print(f"{number}. {note.strip()}")
+        with open('notes.json', 'r', encoding='utf8') as file:
+            return json.load(file)
     except FileNotFoundError:
-        print("Файл заметок не найден. Будет создан новый файл.")
+        return []
+
+def save_notes(notes):
+    with open('notes.json', 'w', encoding='utf8') as file:
+        json.dump(notes, file, ensure_ascii=False, indent=4)
+
+def show_notes():
+    notes = load_notes()
+    if not notes:
+        print("Нет сохраненных заметок.")
+    else:
+        print("\nВаши заметки:")
+        for idx, note in enumerate(notes, start=1):
+            print(f"{idx}. Заголовок: {note['title']}, Текст: {note['body']}")
 
 def add_note():
-    note = input("Введите заметку: ")
-    with open('notes.txt', 'a') as file:
-        file.write(note + '\n')
+    title = input("Введите заголовок заметки: ")
+    body = input("Введите текст заметки: ")
+    notes = load_notes()
+    notes.append({'title': title, 'body': body})
+    save_notes(notes)
     print("Заметка добавлена.")
 
 def delete_note():
+    notes = load_notes()
     show_notes()
     try:
         note_number = int(input("Введите номер заметки для удаления: "))
-        with open('notes.txt', 'r') as file:
-            notes = file.readlines()
-
-        if note_number <= len(notes) and note_number > 0:
+        if 0 < note_number <= len(notes):
             del notes[note_number - 1]
-            with open('notes.txt', 'w') as file:
-                file.writelines(notes)
+            save_notes(notes)
             print("Заметка удалена.")
         else:
             print("Неверный номер заметки.")
